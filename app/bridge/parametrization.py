@@ -22,16 +22,14 @@ from viktor.parametrization import Step
 
 class BridgeParametrization(Parametrization):
     """Defines the input fields in left-side of the web UI in the Sample entity (Editor)."""
-    bridge_layout = Step("Defining bridge layout")
+    bridge_layout = Step("Defining bridge layout", views='visualize_bridge_layout')
     bridge_layout.width = NumberField("Width", default=20, suffix='m')
     bridge_layout.length = NumberField("Length", default=100, suffix='m')
     bridge_layout.height = NumberField("height", default=10, suffix='m')
     bridge_layout.deck_thickness = NumberField("Deck thickness", default=2, suffix='m')
     bridge_layout.support_amount = NumberField("Number of supports", default=1, suffix='m')
 
-    bridge_support = Step("Defining bridge support")
-    bridge_support.pile_length = NumberField("Pile length", default=10, suffix='m')
-    bridge_support.pile_angle = NumberField("Pile angle", default=10, suffix='°')
-    bridge_support.pile_thickness = NumberField("Pile width", default=200, suffix='mm')
-
-
+    bridge_foundations = Step("Defining bridge foundations", views='visualize_bridge_foundations')
+    bridge_foundations.pile_length = NumberField("Pile length", default=10, suffix='m')
+    bridge_foundations.pile_angle = NumberField("Pile angle", default=10, suffix='°')
+    bridge_foundations.pile_thickness = NumberField("Pile width", default=2000, suffix='mm')
