@@ -46,3 +46,5 @@ class BridgeParametrization(Parametrization):
     bridge_foundations.input_xml_btn = DownloadButton('viktor.xml', method='download_scia_input_xml')
     bridge_foundations.input_def_btn = DownloadButton('viktor.xml.def', method='download_scia_input_def')
     bridge_foundations.input_esa_btn = DownloadButton('model.esa', method='download_scia_input_esa')
+
+    bridge_engineering_report = Step('Analyse engineering report', views='execute_scia_analysis')

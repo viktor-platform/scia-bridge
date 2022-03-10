@@ -27,6 +27,8 @@ from viktor.external.scia import LoadCombination
 from viktor.external.scia import LoadGroup
 from viktor.external.scia import Material as SciaMaterial
 from viktor.external.scia import Model as SciaModel
+from viktor.external.scia import ResultType
+from viktor.external.scia import SciaAnalysis
 from viktor.external.scia import SurfaceLoad
 from viktor.geometry import CircularExtrusion
 from viktor.geometry import Extrusion
@@ -39,6 +41,8 @@ from viktor.geometry import Sphere
 from viktor.result import DownloadResult
 from viktor.views import GeometryResult
 from viktor.views import GeometryView
+from viktor.views import PDFResult
+from viktor.views import PDFView
 
 from .parametrization import BridgeParametrization
 
@@ -68,6 +72,20 @@ class BridgeController(ViktorController):
         for obj in geometry_group_bridge_layout.children:
             geometry_group_bridge_foundations.add(obj)
         return GeometryResult(geometry_group_bridge_foundations)
+
+    @PDFView("PDF View", duration_guess=20)
+    def execute_scia_analysis(self, params, **kwargs):
+        """ Perform an analysis using SCIA on a third-party worker and generate engineering report."""
+        scia_model = self.create_scia_model(params)
+        input_file, xml_def_file = scia_model.generate_xml_input()
+        scia_model_esa = self.get_scia_input_esa()
+
+        scia_analysis = SciaAnalysis(input_file=input_file, xml_def_file=xml_def_file, scia_model=scia_model_esa,
+                                     result_type=ResultType.ENGINEERING_REPORT, output_document='Report_1')
+        scia_analysis.execute(timeout=600)
+        engineering_report = scia_analysis.get_engineering_report(as_file=True)
+
+        return PDFResult(file=engineering_report)
 
     def download_scia_input_esa(self, params, **kwargs):
         """"Download scia input esa file"""
@@ -392,22 +410,22 @@ class BridgeController(ViktorController):
         foundation_piles = []
         for x_index, x_support_beam in enumerate(x_support_beams):
             for y_index, y_support_beam in enumerate(y_support_beams):
-                for x_offset in x_slab_beams_offset:
+                for z_index, x_offset in enumerate(x_slab_beams_offset):
                     foundation_piles.append(scia_model.create_beam(
                         begin_node=scia_model.create_node(
-                            f'node_support_foundation_bottom_{x_index}_{y_index}',
+                            f'node_support_foundation_bottom_{x_index}_{y_index}_{z_index}',
                             x_support_beam + x_offset,
                             y_support_beam,
                             -pile_length
                         ),
                         end_node=scia_model.create_node(
-                            f'node_support_foundation_top_{x_index}_{y_index}',
+                            f'node_support_foundation_top_{x_index}_{y_index}_{z_index}',
                             x_support_beam + x_offset,
                             y_support_beam,
                             0
                         ),
                         cross_section=scia_model.create_rectangular_cross_section(
-                            f'rectangular_cross_section_support_foundation_{x_index}_{y_index}',
+                            f'rectangular_cross_section_support_foundation_{x_index}_{y_index}_{z_index}',
                             material,
                             pile_thickness,
                             pile_thickness
@@ -435,19 +453,19 @@ class BridgeController(ViktorController):
                                                         name='abutment_plane_left', material=material))
 
         # Left abutments slab
-        abutment_nodes_right = [scia_model.create_node('node_abutment_0_0',
+        abutment_nodes_right = [scia_model.create_node('node_abutment_1_0',
                                                        length - self.support_slab_width / 2,
                                                        0,
                                                        height - support_slab_thickness / 2),
-                                scia_model.create_node('node_abutment_0_1',
+                                scia_model.create_node('node_abutment_1_1',
                                                        length - self.support_slab_width / 2,
                                                        width,
                                                        height - support_slab_thickness / 2),
-                                scia_model.create_node('node_abutment_0_2',
+                                scia_model.create_node('node_abutment_1_2',
                                                        length + self.support_slab_width / 2,
                                                        width,
                                                        height - support_slab_thickness / 2),
-                                scia_model.create_node('node_abutment_0_3',
+                                scia_model.create_node('node_abutment_1_3',
                                                        length + self.support_slab_width / 2,
                                                        0,
                                                        height - support_slab_thickness / 2)]
@@ -478,19 +496,19 @@ class BridgeController(ViktorController):
             ))
             foundation_piles.append(scia_model.create_beam(
                 begin_node=scia_model.create_node(
-                    f'node_abutment_foundation_bottom_1_{y_index}',
+                    f'node_abutment_foundation_bottom_3_{y_index}',
                     length + math.sin(pile_angle * math.pi / 180) * pile_length + x_slab_beams_offset[1],
                     y_support_beam,
                     height - math.cos(pile_angle * math.pi / 180) * pile_length - support_slab_thickness
                 ),
                 end_node=scia_model.create_node(
-                    f'node_abutment_foundation_top_1_{y_index}',
+                    f'node_abutment_foundation_top_3_{y_index}',
                     length + x_slab_beams_offset[1],
                     y_support_beam,
                     height - support_slab_thickness
                 ),
                 cross_section=scia_model.create_rectangular_cross_section(
-                    f'rectangular_cross_section_abutment_foundation_1_{y_index}',
+                    f'rectangular_cross_section_abutment_foundation_3_{y_index}',
                     material,
                     pile_thickness,
                     pile_thickness
@@ -499,19 +517,19 @@ class BridgeController(ViktorController):
             for x_index, x_abutment_foundation in enumerate([x_slab_beams_offset[1], length + x_slab_beams_offset[0]]):
                 foundation_piles.append(scia_model.create_beam(
                     begin_node=scia_model.create_node(
-                        f'node_abutment_foundation_bottom_{x_index}_{y_index}',
+                        f'node_abutment_foundation_bottom_{x_index + 1}_{y_index}',
                         x_abutment_foundation,
                         y_support_beam,
                         height - pile_length - support_slab_thickness
                     ),
                     end_node=scia_model.create_node(
-                        f'node_abutment_foundation_top_{x_index}_{y_index}',
+                        f'node_abutment_foundation_top_{x_index + 1}_{y_index}',
                         x_abutment_foundation,
                         y_support_beam,
                         height - support_slab_thickness
                     ),
                     cross_section=scia_model.create_rectangular_cross_section(
-                        f'rectangular_cross_section_abutment_foundation_{x_index}_{y_index}',
+                        f'rectangular_cross_section_abutment_foundation_{x_index + 1}_{y_index}',
                         material,
                         pile_thickness,
                         pile_thickness
