@@ -15,6 +15,8 @@ SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from viktor.parametrization import DownloadButton
+from viktor.parametrization import LineBreak
 from viktor.parametrization import NumberField
 from viktor.parametrization import Parametrization
 from viktor.parametrization import Step
@@ -32,4 +34,15 @@ class BridgeParametrization(Parametrization):
     bridge_foundations = Step("Defining bridge foundations", views='visualize_bridge_foundations')
     bridge_foundations.pile_length = NumberField("Pile length", default=20, suffix='m')
     bridge_foundations.pile_angle = NumberField("Pile angle", default=10, suffix='°')
-    bridge_foundations.pile_thickness = NumberField("Pile width", default=2000, suffix='mm')
+    bridge_foundations.pile_thickness = NumberField("Pile width", default=500, suffix='mm')
+
+    bridge_foundations.ln_break0 = LineBreak()
+
+    bridge_foundations.deck_load = NumberField('Deck load', default=100, suffix='kN/m2')
+    bridge_foundations.soil_stiffness = NumberField('Soil stiffness', default=400, suffix='MN/m')
+
+    bridge_foundations.ln_break1 = LineBreak()
+
+    bridge_foundations.input_xml_btn = DownloadButton('viktor.xml', method='download_scia_input_xml')
+    bridge_foundations.input_def_btn = DownloadButton('viktor.xml.def', method='download_scia_input_def')
+    bridge_foundations.input_esa_btn = DownloadButton('model.esa', method='download_scia_input_esa')
