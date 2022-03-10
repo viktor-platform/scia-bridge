@@ -30,6 +30,6 @@ class BridgeParametrization(Parametrization):
     bridge_layout.support_amount = NumberField("Number of supports", default=1, suffix='m')
 
     bridge_foundations = Step("Defining bridge foundations", views='visualize_bridge_foundations')
-    bridge_foundations.pile_length = NumberField("Pile length", default=10, suffix='m')
+    bridge_foundations.pile_length = NumberField("Pile length", default=20, suffix='m')
     bridge_foundations.pile_angle = NumberField("Pile angle", default=10, suffix='°')
     bridge_foundations.pile_thickness = NumberField("Pile width", default=2000, suffix='mm')
