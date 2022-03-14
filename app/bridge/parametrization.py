@@ -20,29 +20,33 @@ from viktor.parametrization import LineBreak
 from viktor.parametrization import NumberField
 from viktor.parametrization import Parametrization
 from viktor.parametrization import Step
+from viktor.parametrization import Text
 
 
 class BridgeParametrization(Parametrization):
     """Defines the input fields in left-side of the web UI in the Sample entity (Editor)."""
     bridge_layout = Step("Defining bridge layout", views='visualize_bridge_layout')
-    bridge_layout.width = NumberField("Width", default=20, suffix='m')
-    bridge_layout.length = NumberField("Length", default=100, suffix='m')
-    bridge_layout.height = NumberField("height", default=10, suffix='m')
+    bridge_layout.txt_deck = Text('## Deck layout  ')
+    bridge_layout.width = NumberField("Deck width", default=20, suffix='m')
+    bridge_layout.length = NumberField("Deck length", default=100, suffix='m')
+    bridge_layout.height = NumberField("Deck height", default=10, suffix='m')
     bridge_layout.deck_thickness = NumberField("Deck thickness", default=2, suffix='m')
-    bridge_layout.support_amount = NumberField("Number of supports", default=1, suffix='m')
+    bridge_layout.ln_break0 = LineBreak()
+    bridge_layout.txt_support = Text('## Support layout  ')
+    bridge_layout.support_amount = NumberField("Number of supports", default=1)
+    bridge_layout.support_piles_amount = NumberField("Number of piles per supports", default=5)
 
     bridge_foundations = Step("Defining bridge foundations", views='visualize_bridge_foundations')
+    bridge_foundations.txt_pile = Text('## Pile layout  ')
     bridge_foundations.pile_length = NumberField("Pile length", default=20, suffix='m')
     bridge_foundations.pile_angle = NumberField("Pile angle", default=10, suffix='°')
     bridge_foundations.pile_thickness = NumberField("Pile width", default=500, suffix='mm')
-
     bridge_foundations.ln_break0 = LineBreak()
-
+    bridge_foundations.txt_force = Text('## Forces  ')
     bridge_foundations.deck_load = NumberField('Deck load', default=100, suffix='kN/m2')
     bridge_foundations.soil_stiffness = NumberField('Soil stiffness', default=400, suffix='MN/m')
-
     bridge_foundations.ln_break1 = LineBreak()
-
+    bridge_foundations.txt_downoad = Text('## Download for SCIA  ')
     bridge_foundations.input_xml_btn = DownloadButton('viktor.xml', method='download_scia_input_xml')
     bridge_foundations.input_def_btn = DownloadButton('viktor.xml.def', method='download_scia_input_def')
     bridge_foundations.input_esa_btn = DownloadButton('model.esa', method='download_scia_input_esa')

@@ -27,6 +27,7 @@ from viktor.external.scia import LoadCombination
 from viktor.external.scia import LoadGroup
 from viktor.external.scia import Material as SciaMaterial
 from viktor.external.scia import Model as SciaModel
+from viktor.external.scia import PointSupport
 from viktor.external.scia import ResultType
 from viktor.external.scia import SciaAnalysis
 from viktor.external.scia import SurfaceLoad
@@ -67,7 +68,8 @@ class BridgeController(ViktorController):
     def visualize_bridge_foundations(self, params, **kwargs):
         """"create a visualization of a bridge foundations"""
         scia_bridge_model = self.create_scia_model(params)
-        geometry_group_bridge_foundations = self.create_visualization_bridge_foundations(params, scia_bridge_model)
+        geometry_group_bridge_foundations = self.create_visualization_bridge_foundations(
+            params, scia_bridge_model, opacity=0.5)
         geometry_group_bridge_layout = self.create_visualization_bridge_layout(params, opacity=0.1)
         for obj in geometry_group_bridge_layout.children:
             geometry_group_bridge_foundations.add(obj)
@@ -122,9 +124,11 @@ class BridgeController(ViktorController):
         height = params.bridge_layout.height
         deck_thickness = params.bridge_layout.deck_thickness
         support_amount = params.bridge_layout.support_amount
+        support_piles_amount = params.bridge_layout.support_piles_amount
 
         bridge_material = Material('bridge', threejs_roughness=1, threejs_opacity=opacity)
-        lane_material = Material('lanes', threejs_roughness=1, color=Color.black(), threejs_opacity=opacity)
+        support_material = Material('suport_piles', threejs_roughness=1, threejs_opacity=max(opacity, 0.5))
+        lane_material = Material('lanes', threejs_roughness=1, color=Color(42, 41, 34), threejs_opacity=opacity)
         bike_lane_material = Material('lanes', threejs_roughness=1, color=Color(109, 52, 45), threejs_opacity=opacity)
         lane_markings_material = Material('lanes', threejs_roughness=1, color=Color.white(), threejs_opacity=opacity)
         talud_material = Material('talud', threejs_roughness=1, color=Color.green(), threejs_opacity=opacity)
@@ -229,18 +233,22 @@ class BridgeController(ViktorController):
 
         # support beams under the bridge
         x_support_beams = np.linspace(talud_x_width, length - talud_x_width, support_amount + 2)
-        y_support_beams = np.linspace(self.support_beam_diameter, width - self.support_beam_diameter, 3)
+        y_support_beams = np.linspace(
+            self.support_beam_diameter,
+            width - self.support_beam_diameter,
+            support_piles_amount
+        )
         for x_support in x_support_beams:
             for y_support_beam in y_support_beams:
                 support_obj = CircularExtrusion(self.support_beam_diameter, Line(
                     Point(x_support, y_support_beam, 0),
                     Point(x_support, y_support_beam, height)))
-                support_obj.material = bridge_material
+                support_obj.material = support_material
                 geometry_group.add(support_obj)
 
         return geometry_group
 
-    def create_visualization_bridge_foundations(self, params, scia_model: SciaModel):
+    def create_visualization_bridge_foundations(self, params, scia_model: SciaModel, opacity=1.0):
         """Creates a visualization of the bridge"""
         geometry_group = Group([])
 
@@ -249,11 +257,13 @@ class BridgeController(ViktorController):
         height = params.bridge_layout.height
         deck_thickness = params.bridge_layout.deck_thickness
         support_amount = params.bridge_layout.support_amount
+        support_piles_amount = params.bridge_layout.support_piles_amount
+
         pile_thickness = params.bridge_foundations.pile_thickness * 1e-03
 
-        foundation_material = Material('foundation', threejs_roughness=1, threejs_opacity=1)
+        foundation_material = Material('foundation', threejs_roughness=1, threejs_opacity=opacity)
         node_material = Material('node', color=Color(0, 255, 0))
-        deck_material = Material('deck', threejs_roughness=1, threejs_opacity=1)
+        deck_material = Material('deck', threejs_roughness=1, threejs_opacity=opacity)
 
         support_slab_thickness = deck_thickness
 
@@ -291,7 +301,7 @@ class BridgeController(ViktorController):
             geometry_group.add(beam_obj)
 
         # rectangular pile under support slabs
-        for beam in scia_model.beams[(support_amount + 2) * 3:]:
+        for beam in scia_model.beams[(support_amount + 2) * support_piles_amount:]:
             point_top = Point(beam.begin_node.x, beam.begin_node.y, beam.begin_node.z)
             point_bottom = Point(beam.end_node.x, beam.end_node.y, beam.end_node.z)
             beam_obj = RectangularExtrusion(pile_thickness, pile_thickness, Line(point_top, point_bottom))
@@ -340,6 +350,7 @@ class BridgeController(ViktorController):
         height = params.bridge_layout.height
         deck_thickness = params.bridge_layout.deck_thickness
         support_amount = params.bridge_layout.support_amount
+        support_piles_amount = params.bridge_layout.support_piles_amount
         pile_length = params.bridge_foundations.pile_length
         pile_angle = params.bridge_foundations.pile_angle
         pile_thickness = params.bridge_foundations.pile_thickness * 1e-03
@@ -361,13 +372,17 @@ class BridgeController(ViktorController):
         deck_plane = scia_model.create_plane(deck_nodes, deck_thickness, name='deck_plane', material=material)
 
         x_support_beams = np.linspace(talud_x_width, length - talud_x_width, support_amount + 2)
-        y_support_beams = np.linspace(self.support_beam_diameter, width - self.support_beam_diameter, 3)
+        y_support_beams = np.linspace(
+            self.support_beam_diameter,
+            width - self.support_beam_diameter,
+            support_piles_amount
+        )
         x_slab_beams_offset = [-self.support_slab_width / 3, self.support_slab_width / 3]
 
         # supports
         foundation_slabs = []
         for x_index, x_support_beam in enumerate(x_support_beams):
-            # create the slab underneath the 3 beams
+            # create the slab underneath the beams
             foundation_slabs.append(scia_model.create_plane(
                 corner_nodes=[
                     scia_model.create_node(f'node_slab_{x_index}_0', x_support_beam - self.support_slab_width / 2, 0,
@@ -388,7 +403,7 @@ class BridgeController(ViktorController):
             material_cross_section,
             self.support_beam_diameter
         )
-        # create the 3 beams for the support
+        # create the beams for the support
         support_beams = []
         for x_index, x_support_beam in enumerate(x_support_beams):
             for y_index, y_support_beam in enumerate(y_support_beams):
@@ -415,11 +430,11 @@ class BridgeController(ViktorController):
             pile_thickness,
             pile_thickness
         )
-        foundation_piles = []
+        foundation_piles_straight = []
         for x_index, x_support_beam in enumerate(x_support_beams):
             for y_index, y_support_beam in enumerate(y_support_beams):
                 for z_index, x_offset in enumerate(x_slab_beams_offset):
-                    foundation_piles.append(scia_model.create_beam(
+                    foundation_piles_straight.append(scia_model.create_beam(
                         begin_node=scia_model.create_node(
                             f'node_support_foundation_bottom_{x_index}_{y_index}_{z_index}',
                             x_support_beam + x_offset,
@@ -475,8 +490,11 @@ class BridgeController(ViktorController):
         foundation_slabs.append(scia_model.create_plane(abutment_nodes_right, support_slab_thickness,
                                                         name='abutment_plane_right', material=material))
 
+        # abutment piles
+        foundation_piles_angled = []
         for y_index, y_support_beam in enumerate(y_support_beams):
-            foundation_piles.append(scia_model.create_beam(
+            # left angled abutment piles
+            foundation_piles_angled.append(scia_model.create_beam(
                 begin_node=scia_model.create_node(
                     f'node_abutment_foundation_bottom_0_{y_index}',
                     -math.sin(pile_angle * math.pi / 180) * pile_length + x_slab_beams_offset[0],
@@ -491,7 +509,8 @@ class BridgeController(ViktorController):
                 ),
                 cross_section=rectangular_cross_section_foundation
             ))
-            foundation_piles.append(scia_model.create_beam(
+            # right angled abutment piles
+            foundation_piles_angled.append(scia_model.create_beam(
                 begin_node=scia_model.create_node(
                     f'node_abutment_foundation_bottom_3_{y_index}',
                     length + math.sin(pile_angle * math.pi / 180) * pile_length + x_slab_beams_offset[1],
@@ -506,8 +525,9 @@ class BridgeController(ViktorController):
                 ),
                 cross_section=rectangular_cross_section_foundation
             ))
+            # middle abutment piles (not angled)
             for x_index, x_abutment_foundation in enumerate([x_slab_beams_offset[1], length + x_slab_beams_offset[0]]):
-                foundation_piles.append(scia_model.create_beam(
+                foundation_piles_straight.append(scia_model.create_beam(
                     begin_node=scia_model.create_node(
                         f'node_abutment_foundation_bottom_{x_index + 1}_{y_index}',
                         x_abutment_foundation,
@@ -528,10 +548,12 @@ class BridgeController(ViktorController):
         for foundation_slab in foundation_slabs:
             scia_model.create_surface_support(foundation_slab, subsoil)
 
-        # create support on foundation piles
-        for foundation_pile in foundation_piles:
+        # create support on straight foundation piles on beam and on bottom point
+        for pile_index, foundation_pile in enumerate(foundation_piles_straight):
+            # create support on beam
             scia_model.create_line_support_on_beam(
-                foundation_pile,
+                beam=foundation_pile,
+                name=f'support_beam_straight_{pile_index}',
                 x=LineSupport.Freedom.FLEXIBLE,
                 stiffness_x=soil_stiffness,
                 y=LineSupport.Freedom.FLEXIBLE,
@@ -542,6 +564,39 @@ class BridgeController(ViktorController):
                 rz=LineSupport.Freedom.FREE,
                 c_sys=LineSupport.CSys.GLOBAL
             )
+            # create point support on bottom beam
+            scia_model.create_point_support(
+                name=f'point_support_beam_straight_{pile_index}',
+                node=foundation_pile.end_node,
+                spring_type=PointSupport.Type.STANDARD,
+                freedom=(
+                    PointSupport.Freedom.FREE,      # x
+                    PointSupport.Freedom.FREE,      # y
+                    PointSupport.Freedom.FLEXIBLE,  # z
+                    PointSupport.Freedom.FREE,      # rx
+                    PointSupport.Freedom.FREE,      # ry
+                    PointSupport.Freedom.FREE,      # rz
+                ),
+                stiffness=(0, 0, soil_stiffness, 0, 0, 0),
+                c_sys=PointSupport.CSys.GLOBAL
+            )
+
+        # create support on angled foundation piles
+        for foundation_pile in foundation_piles_angled:
+            scia_model.create_line_support_on_beam(
+                foundation_pile,
+                x=LineSupport.Freedom.FLEXIBLE,
+                stiffness_x=soil_stiffness,
+                y=LineSupport.Freedom.FLEXIBLE,
+                stiffness_y=soil_stiffness,
+                z=LineSupport.Freedom.FREE,
+                rx=LineSupport.Freedom.FREE,
+                ry=LineSupport.Freedom.FREE,
+                rz=LineSupport.Freedom.FLEXIBLE,
+                stiffness_rz=soil_stiffness,
+                c_sys=LineSupport.CSys.GLOBAL
+            )
+
 
         # create the load group
         load_group = scia_model.create_load_group('LG1', LoadGroup.LoadOption.VARIABLE,
