@@ -61,8 +61,11 @@ class BridgeController(ViktorController):
     @GeometryView("3D", duration_guess=1)
     def visualize_bridge_layout(self, params, **kwargs):
         """"create a visualization of the bridge"""
-        geometry_group = self.create_visualization_bridge_layout(params)
-        return GeometryResult(geometry_group)
+        geometry_group_bridge = self.create_visualization_bridge_layout(params)
+        geometry_group_artifacts = self.create_visualization_artifacts(params)
+        for obj in geometry_group_artifacts.children:
+            geometry_group_bridge.add(obj)
+        return GeometryResult(geometry_group_bridge)
 
     @GeometryView("3D", duration_guess=1)
     def visualize_bridge_foundations(self, params, **kwargs):
@@ -570,12 +573,12 @@ class BridgeController(ViktorController):
                 node=foundation_pile.end_node,
                 spring_type=PointSupport.Type.STANDARD,
                 freedom=(
-                    PointSupport.Freedom.FREE,      # x
-                    PointSupport.Freedom.FREE,      # y
+                    PointSupport.Freedom.FREE,  # x
+                    PointSupport.Freedom.FREE,  # y
                     PointSupport.Freedom.FLEXIBLE,  # z
-                    PointSupport.Freedom.FREE,      # rx
-                    PointSupport.Freedom.FREE,      # ry
-                    PointSupport.Freedom.FREE,      # rz
+                    PointSupport.Freedom.FREE,  # rx
+                    PointSupport.Freedom.FREE,  # ry
+                    PointSupport.Freedom.FREE,  # rz
                 ),
                 stiffness=(0, 0, soil_stiffness, 0, 0, 0),
                 c_sys=PointSupport.CSys.GLOBAL
@@ -597,7 +600,6 @@ class BridgeController(ViktorController):
                 c_sys=LineSupport.CSys.GLOBAL
             )
 
-
         # create the load group
         load_group = scia_model.create_load_group('LG1', LoadGroup.LoadOption.VARIABLE,
                                                   LoadGroup.RelationOption.STANDARD, LoadGroup.LoadTypeOption.CAT_G)
@@ -618,3 +620,67 @@ class BridgeController(ViktorController):
                                        deck_load, SurfaceLoad.CSys.GLOBAL, SurfaceLoad.Location.LENGTH)
 
         return scia_model
+
+    def create_visualization_artifacts(self, params):
+        """Creates artifacts for the design like a car"""
+        geometry_group = Group([])
+
+        length = params.bridge_layout.length
+        car_material = Material('car', threejs_roughness=1, color=Color.red())
+
+        car_points_base = [
+            Point(0, 0),
+            Point(0, 7),
+            Point(3.5, 7),
+            Point(3.5, 0),
+            Point(0, 0)
+        ]
+
+        car_points_roof = [
+            Point(0, 0),
+            Point(0, 4),
+            Point(3.5, 4),
+            Point(3.5, 0),
+            Point(0, 0)
+        ]
+
+        # cars on the left side of the road
+        y_cars = np.linspace(-length * 0.9, length * 0.9, 5)
+        for y_car in y_cars[1:-1]:
+            car_obj = Extrusion(car_points_base, Line(Point(length - 28, y_car, 0.3), Point(length - 28, y_car, 2)))
+            car_obj.material = car_material
+            geometry_group.add(car_obj)
+
+            car_obj = Extrusion(car_points_roof,
+                                Line(Point(length - 28, y_car + 1, 2), Point(length - 28, y_car + 1, 3)))
+            car_obj.material = car_material
+            geometry_group.add(car_obj)
+
+            for y_wheel in [y_car + 1.5, y_car + 5.5]:
+                wheel_obj = CircularExtrusion(1, Line(
+                    Point(length - 28.1, y_wheel, 0.5),
+                    Point(length - 24.4, y_wheel, 0.5)
+                ))
+                wheel_obj.material = Material('wheel', threejs_roughness=1, color=Color.black())
+                geometry_group.add(wheel_obj)
+
+        # cars on the right side of the road
+        for y_car in y_cars[1:-1] + 20:
+            car_obj = Extrusion(car_points_base, Line(Point(24.5, y_car, 0.3), Point(24.5, y_car, 2)))
+            car_obj.material = car_material
+            geometry_group.add(car_obj)
+
+            car_obj = Extrusion(car_points_roof,
+                                Line(Point(24.5, y_car + 2, 2), Point(24.5, y_car + 2, 3)))
+            car_obj.material = car_material
+            geometry_group.add(car_obj)
+
+            for y_wheel in [y_car + 1.5, y_car + 5.5]:
+                wheel_obj = CircularExtrusion(1, Line(
+                    Point(28.1, y_wheel, 0.5),
+                    Point(24.4, y_wheel, 0.5)
+                ))
+                wheel_obj.material = Material('wheel', threejs_roughness=1, color=Color.black())
+                geometry_group.add(wheel_obj)
+
+        return geometry_group
