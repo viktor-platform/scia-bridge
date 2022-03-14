@@ -53,7 +53,7 @@ class BridgeController(ViktorController):
     parametrization = BridgeParametrization
     viktor_convert_entity_field = True
 
-    support_beam_diameter = 2
+    support_beam_diameter = 2.0
     talud_angle = 60 * math.pi / 180
     support_slab_width = 7
 
@@ -342,7 +342,7 @@ class BridgeController(ViktorController):
         support_amount = params.bridge_layout.support_amount
         pile_length = params.bridge_foundations.pile_length
         pile_angle = params.bridge_foundations.pile_angle
-        pile_thickness = params.bridge_foundations.pile_thickness
+        pile_thickness = params.bridge_foundations.pile_thickness * 1e-03
         soil_stiffness = params.bridge_foundations.soil_stiffness * 1e06
         deck_load = params.bridge_foundations.deck_load * -1e03
 
@@ -351,6 +351,7 @@ class BridgeController(ViktorController):
         support_slab_thickness = deck_thickness
 
         material = SciaMaterial(0, 'concrete_slab')
+        material_cross_section = SciaMaterial(0, 'C30/37')
 
         # Deck
         deck_nodes = [scia_model.create_node('node_deck_0', 0, 0, height),
@@ -382,6 +383,11 @@ class BridgeController(ViktorController):
                 material=material
             ))
 
+        circular_cross_section_support = scia_model.create_circular_cross_section(
+            'circular_cross_section_support',
+            material_cross_section,
+            self.support_beam_diameter
+        )
         # create the 3 beams for the support
         support_beams = []
         for x_index, x_support_beam in enumerate(x_support_beams):
@@ -399,14 +405,16 @@ class BridgeController(ViktorController):
                         y_support_beam,
                         height
                     ),
-                    cross_section=scia_model.create_circular_cross_section(
-                        f'circular_cross_section_support_{x_index}_{y_index}',
-                        material,
-                        self.support_beam_diameter
-                    )
+                    cross_section=circular_cross_section_support
                 ))
 
         # create foundation piles under support slabs
+        rectangular_cross_section_foundation = scia_model.create_rectangular_cross_section(
+            'rectangular_cross_section_foundation',
+            material_cross_section,
+            pile_thickness,
+            pile_thickness
+        )
         foundation_piles = []
         for x_index, x_support_beam in enumerate(x_support_beams):
             for y_index, y_support_beam in enumerate(y_support_beams):
@@ -424,12 +432,7 @@ class BridgeController(ViktorController):
                             y_support_beam,
                             0
                         ),
-                        cross_section=scia_model.create_rectangular_cross_section(
-                            f'rectangular_cross_section_support_foundation_{x_index}_{y_index}_{z_index}',
-                            material,
-                            pile_thickness,
-                            pile_thickness
-                        )
+                        cross_section=rectangular_cross_section_foundation
                     ))
 
         # Left abutments slab
@@ -472,7 +475,6 @@ class BridgeController(ViktorController):
         foundation_slabs.append(scia_model.create_plane(abutment_nodes_right, support_slab_thickness,
                                                         name='abutment_plane_right', material=material))
 
-        # all the foundation piles under abutment slab
         for y_index, y_support_beam in enumerate(y_support_beams):
             foundation_piles.append(scia_model.create_beam(
                 begin_node=scia_model.create_node(
@@ -487,12 +489,7 @@ class BridgeController(ViktorController):
                     y_support_beam,
                     height - support_slab_thickness
                 ),
-                cross_section=scia_model.create_rectangular_cross_section(
-                    f'rectangular_cross_section_abutment_foundation_0_{y_index}',
-                    material,
-                    pile_thickness,
-                    pile_thickness
-                )
+                cross_section=rectangular_cross_section_foundation
             ))
             foundation_piles.append(scia_model.create_beam(
                 begin_node=scia_model.create_node(
@@ -507,12 +504,7 @@ class BridgeController(ViktorController):
                     y_support_beam,
                     height - support_slab_thickness
                 ),
-                cross_section=scia_model.create_rectangular_cross_section(
-                    f'rectangular_cross_section_abutment_foundation_3_{y_index}',
-                    material,
-                    pile_thickness,
-                    pile_thickness
-                )
+                cross_section=rectangular_cross_section_foundation
             ))
             for x_index, x_abutment_foundation in enumerate([x_slab_beams_offset[1], length + x_slab_beams_offset[0]]):
                 foundation_piles.append(scia_model.create_beam(
@@ -528,12 +520,7 @@ class BridgeController(ViktorController):
                         y_support_beam,
                         height - support_slab_thickness
                     ),
-                    cross_section=scia_model.create_rectangular_cross_section(
-                        f'rectangular_cross_section_abutment_foundation_{x_index + 1}_{y_index}',
-                        material,
-                        pile_thickness,
-                        pile_thickness
-                    )
+                    cross_section=rectangular_cross_section_foundation
                 ))
 
         # create support on foundation slabs
