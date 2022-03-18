@@ -1,0 +1,5 @@
+import math
+
+SUPPORT_BEAM_DIAMETER = 2.0
+TALUD_ANGLE = 60 * math.pi / 180
+SUPPORT_SLAB_WITH = 7
