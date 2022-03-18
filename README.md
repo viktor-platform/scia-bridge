@@ -9,7 +9,7 @@ It is also possible to use the functionality within your own Python code.
 ## Using the functionality 
 There are two ways in which you can use the functionality: 
 
-With VIKTOR, out-of-the-box, using our [free version](). 
+With VIKTOR, out-of-the-box, using our [free version](https://www.viktor.ai/try-for-free). 
 
 Without VIKTOR, in that case you integrate with your own Python code and create the integration with SCIA yourself. 
 
@@ -20,11 +20,7 @@ This is a snippet of the functionality’s code from app/bridge/controller.py
 In this method the SCIA model is created and an API call is made to the running [worker](https://docs.viktor.ai/docs/worker).
 This worker makes a connection to SCIA and generates a engineering report as a PDF file.
 
-In the video, you can see how a bridge is parametrically designed with SCIA in a VIKTOR application in the [demo environment](). 
-
-INSERT VIDEO
-
-**Apply for a [demo account]() to get access to this and all other VIKTOR sample applications.** 
+**Apply for a [demo account](https://www.viktor.ai/demo-environment) to get access to this and all other VIKTOR sample applications.** 
 
 ## Parametric bridge design in 3 steps 
 
@@ -54,4 +50,4 @@ In this step, you visualize a 2D model of the geometry with the determined loads
 
 *Analyzing the engineering report* 
 
-Use the [free version]() or apply for a [demo account]() to try the functionality yourself! 
+Use the [free version](https://www.viktor.ai/try-for-free) or apply for a [demo account](https://www.viktor.ai/try-for-free) to try the functionality yourself! 
