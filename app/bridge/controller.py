@@ -42,9 +42,6 @@ class BridgeController(ViktorController):
     def visualize_bridge_layout(self, params, **kwargs):
         """"create a visualization of the bridge"""
         geometry_group_bridge = visualization_helper.create_visualization_bridge_layout(params)
-        geometry_group_artifacts = visualization_helper.create_visualization_little_red_cars(params)
-        for obj in geometry_group_artifacts.children:
-            geometry_group_bridge.add(obj)
         return GeometryResult(geometry_group_bridge)
 
     @GeometryView("3D", duration_guess=1)
