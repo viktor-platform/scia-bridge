@@ -9,7 +9,7 @@ It is also possible to use the functionality within your own Python code.
 ## Using the functionality 
 There are two ways in which you can use the functionality: 
 
-With VIKTOR, out-of-the-box, using our [free version](https://www.viktor.ai/try-for-free). 
+With VIKTOR, out-of-the-box, using our [free version](https://www.viktor.ai/try-for-free). You will need your own SCIA licence for the integration. 
 
 Without VIKTOR, in that case you integrate with your own Python code and create the integration with SCIA yourself. 
 
