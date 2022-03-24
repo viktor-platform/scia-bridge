@@ -1,4 +1,4 @@
-![](https://img.shields.io/badge/SDK-v12.9.0-blue) <Please check version is the same as specified in requirements.txt>
+![](https://img.shields.io/badge/SDK-v12.10.0-blue) <Please check version is the same as specified in requirements.txt>
 
 # Sample app parametric bridge design with SCIA 
 Use this open-source sample application to parametrically design bridge models through an 
