@@ -14,6 +14,3 @@ entities:
 - entity_type: ProjectFolder
   properties:
     name: Projects
-
-metadata:
-  background_image: background_image.jpg

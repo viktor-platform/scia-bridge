@@ -36,7 +36,6 @@ class BridgeController(ViktorController):
     """Controller class which acts as interface for the Sample entity type."""
     label = "Bridge"
     parametrization = BridgeParametrization
-    viktor_convert_entity_field = True
 
     @GeometryView("3D", duration_guess=1)
     def visualize_bridge_layout(self, params, **kwargs):
