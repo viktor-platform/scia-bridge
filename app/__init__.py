@@ -15,4 +15,3 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 SOFTWARE.
 """
 from .bridge.controller import BridgeController
-from .project_folder.controller import ProjectFolderController
