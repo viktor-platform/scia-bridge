@@ -1,4 +1,4 @@
-![](https://img.shields.io/badge/SDK-v13.0.0-blue) <Please check version is the same as specified in requirements.txt>
+![](https://img.shields.io/badge/SDK-v14.0.0-blue) <Please check version is the same as specified in requirements.txt>
 
 # Sample app parametric bridge design with SCIA 
 Use this open-source sample application to parametrically design bridge models through an 
@@ -15,7 +15,7 @@ Without VIKTOR, in that case you integrate with your own Python code and create 
 
 This is a snippet of the functionality’s code from app/bridge/controller.py 
 
-![](manifest/pictures/code_snippet.png)
+![](resources/pictures/code_snippet.png)
 
 In this method the SCIA model is created and an API call is made to the running [worker](https://docs.viktor.ai/docs/worker).
 This worker makes a connection to SCIA and generates a engineering report as a PDF file.
@@ -31,7 +31,7 @@ Thanks to the step-functionality, users can better navigate the application, whi
 In this step, you define the length, width, hight, thickness of the deck, 
 and number of supports (aligned with number of lanes). 
 
-![](manifest/pictures/layout.png)
+![](resources/pictures/layout.png)
 
 *Defining the layout of the bridge*
 
@@ -39,15 +39,18 @@ and number of supports (aligned with number of lanes).
 In this step, you define the pile lengths, angles, and width, deck load, and soil stiffness. 
 You can also download the .xml, .xml.def, .esa files to use in SCIA.
 
-![](manifest/pictures/foundations.png)
+![](resources/pictures/foundations.png)
 
 *Defining the bridge foundations*
 
 **Analyzing the engineering report**. 
 In this step, you visualize a 2D model of the geometry with the determined loads automatically in your application from SCIA. 
 
-![](manifest/pictures/engineering_report.png)
+![](resources/pictures/engineering_report.png)
 
 *Analyzing the engineering report* 
 
 Use the [free version](https://www.viktor.ai/try-for-free) or apply for a [demo account](https://www.viktor.ai/try-for-free) to try the functionality yourself! 
+
+## App structure
+This is an editor-only app type.
